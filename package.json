@@ -32,12 +32,13 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "@qdrant/js-client-rest": "^1.11.0",
     "axios": "^1.12.2",
     "body-parser": "^2.2.0",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "openai": "^5.20.3",
-    "@qdrant/js-client-rest": "^1.11.0",
+    "pm2": "^6.0.11",
     "redis": "^5.8.2",
     "rss-parser": "^3.13.0",
     "socket.io": "^4.8.1",
