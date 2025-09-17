@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const chatRoutes = require('./routes/chat');
@@ -7,19 +8,51 @@ const redisClient = require('./utils/redisClient');
 
 const app = express();
 
-// Allow frontend to talk to us from any domain
+// Trust proxy for deployment platforms like Render, Heroku, etc.
+app.set('trust proxy', 1);
+
+// Comprehensive CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow all origins for now (you can restrict this later)
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With', 
+    'Content-Type', 
+    'Accept', 
+    'Authorization',
+    'Cache-Control',
+    'Pragma'
+  ],
+  credentials: false, // Set to true if you need cookies/auth
+  optionsSuccessStatus: 200 // For legacy browser support
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Additional headers for better compatibility
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
+  res.header('Access-Control-Allow-Credentials', 'false');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} from ${req.ip || req.connection.remoteAddress}`);
+  next();
+});
 
 app.use('/api/chat', chatRoutes);
 
@@ -27,15 +60,35 @@ app.use('/api/chat', chatRoutes);
 app.get('/health', (_, res) => res.json({ ok: true }));
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+
+// Socket.io with comprehensive CORS
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+    credentials: false
+  },
+  allowEIO3: true, // Allow Engine.IO v3 clients
+  transports: ['websocket', 'polling'] // Support both transport methods
+});
 
 // Handle websocket connections for real-time chat
 io.on('connection', socket => {
-  console.log('socket connected', socket.id);
+  console.log('socket connected', socket.id, 'from', socket.handshake.address);
+  
   socket.on('start_session', ({ sessionId }) => {
+    console.log('Session started:', sessionId, 'for socket:', socket.id);
     socket.join(sessionId);
   });
-  socket.on('disconnect', () => console.log('socket disconnect', socket.id));
+  
+  socket.on('disconnect', (reason) => {
+    console.log('socket disconnect', socket.id, 'reason:', reason);
+  });
+  
+  socket.on('error', (error) => {
+    console.error('Socket error:', error);
+  });
 });
 
 const PORT = process.env.PORT || 5000;
