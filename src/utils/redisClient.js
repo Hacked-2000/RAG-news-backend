@@ -17,6 +17,7 @@ const { createClient } = require('redis');
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 console.log('Redis URL configured:', redisUrl ? 'yes' : 'no');
+console.log('Redis url: ', redisUrl);
 
 const client = createClient({
   url: redisUrl,
