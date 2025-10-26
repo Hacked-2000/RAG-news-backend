@@ -22,20 +22,13 @@ console.log('Redis url: ', redisUrl);
 const client = createClient({
   url: redisUrl,
   socket: {
-    tls: true,               // ✅ Enables SSL/TLS
-    rejectUnauthorized: false // Optional, useful for cloud Redis
+    tls: true,
+    rejectUnauthorized: false
   }
 });
 
 client.on('error', (err) => console.error('Redis Client Error', err));
 client.on('connect', () => console.log('✅ Redis connected successfully'));
 
-(async () => {
-  try {
-    await client.connect();
-  } catch (err) {
-    console.error('Failed to connect to Redis:', err);
-  }
-})();
+module.exports = client; // don't call connect here
 
-module.exports = client;
