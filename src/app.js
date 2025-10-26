@@ -8,6 +8,7 @@ console.log('- REDIS_URL:', process.env.REDIS_URL ? 'set' : 'not set');
 console.log('- QDRANT_URL:', process.env.QDRANT_URL ? 'set' : 'not set');
 console.log('- GOOGLE_API_KEY:', process.env.GOOGLE_API_KEY ? 'set' : 'not set');
 console.log('- OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'set' : 'not set');
+console.log('- REDIS_URL:', process.env.REDIS_URL ? process.env.REDIS_URL: 'NOT RECIEVED');
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
