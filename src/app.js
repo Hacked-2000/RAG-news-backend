@@ -8,7 +8,6 @@ console.log('- REDIS_URL:', process.env.REDIS_URL ? 'set' : 'not set');
 console.log('- QDRANT_URL:', process.env.QDRANT_URL ? 'set' : 'not set');
 console.log('- GOOGLE_API_KEY:', process.env.GOOGLE_API_KEY ? 'set' : 'not set');
 console.log('- OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'set' : 'not set');
-console.log('- REDIS_URL:', process.env.REDIS_URL ? process.env.REDIS_URL: 'NOT RECIEVED');
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -26,16 +25,16 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     // Allow all origins for now (you can restrict this later)
     return callback(null, true);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
     'Origin',
-    'X-Requested-With', 
-    'Content-Type', 
-    'Accept', 
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
     'Authorization',
     'Cache-Control',
     'Pragma'
@@ -86,16 +85,16 @@ const io = new Server(server, {
 // Handle websocket connections for real-time chat
 io.on('connection', socket => {
   console.log('socket connected', socket.id, 'from', socket.handshake.address);
-  
+
   socket.on('start_session', ({ sessionId }) => {
     console.log('Session started:', sessionId, 'for socket:', socket.id);
     socket.join(sessionId);
   });
-  
+
   socket.on('disconnect', (reason) => {
     console.log('socket disconnect', socket.id, 'reason:', reason);
   });
-  
+
   socket.on('error', (error) => {
     console.error('Socket error:', error);
   });
